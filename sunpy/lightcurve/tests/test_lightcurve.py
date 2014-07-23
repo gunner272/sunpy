@@ -15,6 +15,9 @@ import sunpy
 import sunpy.lightcurve
 from sunpy.data.test import (EVE_AVERAGES_CSV)
 import pandas
+from sunpy.lightcurve.sources.eve import EVELightCurve
+from sunpy.lightcurve.sources.norh import NoRHLightCurve
+from sunpy.lightcurve.sources.rhessi import RHESSISummaryLightCurve
 
 # Generate input test data
 base = datetime.datetime.today()
@@ -38,6 +41,18 @@ def test_input(data, index):
     assert len(lc.data.index) == 24*60
     assert lc.data.index[0] == base
     assert lc.data.index[-1] == base - datetime.timedelta(minutes=24 * 60 - 1)
+
+@pytest.mark.parametrize("lc1, lc2",
+[(EVELightCurve.create('2013/8/7'),EVELightCurve.create('2013/9/7')),
+ (NoRHLightCurve.create('2012/9/8'),NoRHLightCurve.create('2012/8/8')),
+])
+def test_append(lc1, lc2):
+    
+    sumlc = lc1.append(lc2)
+    assert isinstance(sumlc,lc1.__class__)
+    assert sumlc.data.index[0] == lc1.data.index[0]
+    assert sumlc.data.index[-1] == lc2.data.index[-1]
+    assert len(sumlc.data.index) == len(lc1.data.index) + len(lc2.data.index)
 
 
 @pytest.mark.parametrize(("bad_input"), [

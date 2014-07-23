@@ -77,6 +77,12 @@ class TestGOESLightCurve():
         with pytest.raises((Exception)):
             self.compare(lc1, lc2)
 
+    @pytest.mark.online
+    def test_timerange(self,timerange_a):
+        lc1 = sunpy.lightcurve.GOESLightCurve.create(timerange_a)
+	assert isinstance(lc1,sunpy.lightcurve.sources.goes.GOESLightCurve)
+
+
     def test_goes_sat_numbers(self, timerange_a, timerange_b):
         """Test the ability to return GOES satellite availability"""
         g = sunpy.lightcurve.GOESLightCurve
@@ -87,5 +93,7 @@ class TestGOESLightCurve():
         """Test the getting of urls"""
         g = sunpy.lightcurve.GOESLightCurve
         # time ranges create urls with either 4 digit or 2 digit years
-        assert g._get_url_for_date_range(timerange_b) == 'http://umbra.nascom.nasa.gov/goes/fits/1995/go07950603.fits'
-        assert g._get_url_for_date_range(timerange_a) == 'http://umbra.nascom.nasa.gov/goes/fits/2008/go1020080601.fits'
+        assert g._get_url_for_date_range(timerange_b)[0] == 'http://umbra.nascom.nasa.gov/goes/fits/1995/go7950603.fits'
+        assert g._get_url_for_date_range(timerange_a)[0] == 'http://umbra.nascom.nasa.gov/goes/fits/2008/go1020080601.fits'
+
+	
