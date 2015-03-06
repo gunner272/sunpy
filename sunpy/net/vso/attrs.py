@@ -56,7 +56,10 @@ class _Range(object):
 
 
 class Wave(Attr, _Range):
-    def __init__(self, wavemin, wavemax):
+    def __init__(self, wavemin, wavemax=None):
+        if not wavemax:
+            wavemax = wavemin
+
         if not all(isinstance(var, u.Quantity) for var in [wavemin, wavemax]):
             raise TypeError("Wave inputs must be astropy Quantities")
 

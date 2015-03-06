@@ -2,11 +2,12 @@ from __future__ import absolute_import
 
 import numpy as np
 import astropy.units as u
+import warnings
 
 from sunpy.net.attr import (Attr, AttrWalker, AttrAnd, AttrOr)
-from sunpy.net.vso.attrs import Time, _VSOSimpleAttr
+from sunpy.net.vso.attrs import Time, _VSOSimpleAttr, Wave
 
-__all__ = ['Series', 'Protocol', 'Notify', 'Compression', 'Wavelength', 'Time',
+__all__ = ['Series', 'Protocol', 'Notify', 'Compression', 'Wave', 'Time',
            'Segment', 'walker']
 
 
@@ -59,31 +60,17 @@ class Compression(_VSOSimpleAttr):
     pass
 
 
-class Wavelength(_VSOSimpleAttr):
+class Wave(Wave):
     """
-    Wavelength or list of wavelengths to download. Must be specified in correct
-    units for the series.
+    Wavelength must be specified in correct units for the series.
     """
-    def __init__(self, value):
-        if not (isinstance(value, u.Quantity) or isinstance(value, list)):
-            raise TypeError("Wave inputs must be astropy Quantities")
-        Attr.__init__(self)
-
-        self.value = value
-
-    def __or__(self, other):
-        if self == other:
-            return self
-        if isinstance(other, self.__class__):
-            return self.__class__([self.value, other.value])
-        return AttrOr([self, other])
-    __ror__ = __or__
+    pass
 
 
 walker = AttrWalker()
 
 
-@walker.add_creator(AttrAnd, _VSOSimpleAttr, Time)
+@walker.add_creator(AttrAnd, _VSOSimpleAttr, Time, Wave)
 def _create(wlk, query):
 
     map_ = {}
@@ -109,6 +96,14 @@ def _apply(wlk, query, imap):
 
     imap['start_time'] = query.start
     imap['end_time'] = query.end
+
+@walker.add_applier(Wave)
+def _apply(wlk, query, imap):
+
+    if (query.min.value == query.max.value) and( query.min.unit == query.max.unit):
+        imap['wavelength'] = query.min.value
+    else:
+        warnings.warn('Minimum and Maximum value should be same.Removing the wavelength constraint')
 
 
 @walker.add_creator(AttrOr)
